@@ -25,7 +25,7 @@ export const AI_ML_PROJECTS: ProjectItem[] = [
     subtitle: 'Self-correcting multi-agent workflow using LangGraph & Claude 3.5',
     description: 'Autonomous multi-agent architecture where specialized agents collaborate on code synthesis, tool execution, output verification, and self-correction loops.',
     tags: ['LangGraph', 'Claude 3.5 Sonnet', 'Python', 'FastAPI', 'Vector DB'],
-    metrics: '84% task automation efficiency',
+    techHighlight: 'Multi-Agent Orchestration & Self-Correction',
     featured: true,
     architecture: [
       'Planner Agent decomposes objectives into execution graphs',
@@ -45,7 +45,7 @@ export const AI_ML_PROJECTS: ProjectItem[] = [
     subtitle: 'High-precision retrieval combining BM25 keyword search with cross-encoder rerankers',
     description: 'Enterprise Retrieval-Augmented Generation engine combining dense embeddings with sparse BM25 indices and Cohere cross-encoders for zero-hallucination document QA.',
     tags: ['RAG', 'Qdrant', 'Cohere Rerank', 'LlamaIndex', 'Python'],
-    metrics: '96.4% retrieval accuracy across unstructured docs',
+    techHighlight: 'Hybrid Dense + BM25 & Cohere Reranking',
     featured: true,
     architecture: [
       'Hierarchical chunking preserving document context',
@@ -65,7 +65,7 @@ export const AI_ML_PROJECTS: ProjectItem[] = [
     subtitle: 'Sub-millisecond inference on edge cameras using YOLOv11 & TensorRT',
     description: 'Industrial computer vision pipeline for automated defect identification on manufacturing lines with real-time hardware alerts.',
     tags: ['YOLOv11', 'TensorRT', 'PyTorch', 'OpenCV', 'CUDA'],
-    metrics: '60+ FPS on edge hardware with 98.7% mAP',
+    techHighlight: 'INT8 Quantized Edge Inference with TensorRT',
     featured: false,
     architecture: [
       'Custom annotated industrial dataset with augmentation',
@@ -85,7 +85,7 @@ export const AI_ML_PROJECTS: ProjectItem[] = [
     subtitle: 'Natural voice synthesis with under 400ms turn-around latency',
     description: 'Conversational voice assistant integrating Whisper transcription, streaming LLM reasoning, and Cartesia text-to-speech over bidirectional WebSockets.',
     tags: ['Whisper', 'Cartesia TTS', 'WebSockets', 'LiveKit', 'Python'],
-    metrics: '< 380ms end-to-end voice latency',
+    techHighlight: 'Streaming WebSocket Voice Synthesis',
     featured: false,
     architecture: [
       'Voice Activity Detection (VAD) for natural user interruptions',
@@ -108,7 +108,7 @@ export const WEB_PROJECTS: ProjectItem[] = [
     subtitle: 'Real-time observability platform for distributed AI inference nodes',
     description: 'Full-stack SaaS delivering real-time metrics, token spend tracking, latency profiling, and automated alerts for AI applications.',
     tags: ['Next.js 15', 'React 19', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'Prisma'],
-    metrics: 'Sub-50ms analytics rendering across 10M+ events',
+    techHighlight: 'React 19 & Real-Time Telemetry Streaming',
     featured: true,
     architecture: [
       'Server-side streaming architecture with React 19 Server Components',
@@ -128,7 +128,7 @@ export const WEB_PROJECTS: ProjectItem[] = [
     subtitle: 'Warehouse logistics and order management engine',
     description: 'Enterprise portal streamlining multi-location inventory, automated barcode scanning, supplier orders, and instant PDF invoice generation.',
     tags: ['React', 'Node.js', 'Express', 'Tailwind CSS', 'MongoDB', 'Docker', 'Redis'],
-    metrics: 'Reduced order fulfillment lag by 65%',
+    techHighlight: 'Role-Based Access & Redis Cache Layer',
     featured: false,
     architecture: [
       'Microservice architecture with decoupled inventory workers',
@@ -148,7 +148,7 @@ export const WEB_PROJECTS: ProjectItem[] = [
     subtitle: 'Modern education portal with live sandbox code execution',
     description: 'Student learning management system featuring video streaming, automated quiz evaluations, and in-browser Python execution environments.',
     tags: ['React 19', 'Vite', 'Tailwind CSS', 'WebAssembly', 'Supabase'],
-    metrics: 'Supports 2,000+ simultaneous students',
+    techHighlight: 'In-Browser Python Execution via WebAssembly',
     featured: true,
     architecture: [
       'In-browser Python code execution using WebAssembly sandboxing',
@@ -171,7 +171,7 @@ export const MOBILE_PROJECTS: ProjectItem[] = [
     subtitle: 'Cross-platform iOS & Android mobile app with BLE medical device sync',
     description: 'Medical companion app that connects via Bluetooth Low Energy to health sensors, runs on-device anomaly detection, and logs vitals securely.',
     tags: ['React Native', 'Expo', 'TypeScript', 'BLE', 'SQLite'],
-    metrics: '4.8 Star rating across active device sessions',
+    techHighlight: 'Low-Energy Bluetooth Medical Telemetry',
     featured: true,
     architecture: [
       'Low-energy Bluetooth background polling with auto-reconnect',
@@ -191,7 +191,7 @@ export const MOBILE_PROJECTS: ProjectItem[] = [
     subtitle: 'Edge document edge-detection, perspective warp, and multilingual extraction',
     description: 'Lightweight offline mobile scanning app leveraging machine learning for automatic edge detection, perspective flattening, and text recognition.',
     tags: ['Flutter', 'Google ML Kit', 'OpenCV', 'Dart'],
-    metrics: '100% offline functionality with < 200ms document crop',
+    techHighlight: 'Edge ML Kit & Hardware-Accelerated Warp',
     featured: false,
     architecture: [
       'Live camera overlay with dynamic boundary detection',
@@ -211,7 +211,7 @@ export const MOBILE_PROJECTS: ProjectItem[] = [
     subtitle: 'Real-time GPS routing, electronic Proof of Delivery (e-POD), and offline sync',
     description: 'Enterprise driver and field agent app featuring route optimization, digital signature capture, and offline task queue synchronization.',
     tags: ['React Native', 'Mapbox', 'Redux Toolkit', 'Background Geolocation'],
-    metrics: 'Zero data loss in remote areas with 50,000+ completed deliveries',
+    techHighlight: 'Offline-First Geofenced Task Sync',
     featured: false,
     architecture: [
       'Battery-optimized background GPS tracking with variable interval pings',
@@ -225,6 +225,7 @@ export const MOBILE_PROJECTS: ProjectItem[] = [
     ]
   }
 ];
+
 
 export const TRAINING_COURSES: TrainingCourse[] = [
   {
@@ -407,29 +408,19 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'agentic-ai-architecture',
     title: 'The Rise of Agentic AI: Why Multi-Agent Systems are Replacing Chatbots',
-    slug: 'rise-of-agentic-ai-multi-agent-systems',
     category: 'AI & ML',
     excerpt: 'Simple Q&A chatbots are being replaced by autonomous multi-agent swarms capable of recursive planning, tool execution, reflection, and self-correction.',
-    author: 'Manideep Juvvala',
-    date: 'AI Engineering',
-    readTime: '4 min read',
-    tags: ['Agentic AI', 'LangGraph', 'LLMs', 'Architecture'],
     content: [
-      'Enterprises are moving beyond simple prompt engineering. Single-prompt completions cannot handle multi-step, complex business workflows that require verification.',
-      'Agentic AI equips LLMs with memory, tool calling, recursive task decomposition, and reflection loops to execute multi-step objectives autonomously.',
-      'At Mani DeepTech Solutions, we architect multi-agent systems using LangGraph: a Planner Agent decomposes tasks, Worker Agents call APIs/Databases, and an Evaluator Agent audits the output against acceptance criteria.'
+      'Enterprises are moving beyond simple prompt engineering. Single-prompt completions cannot handle multi-step, complex business workflows that require deterministic verification.',
+      'Agentic AI equips LLMs with short/long-term memory, tool calling, recursive task decomposition, and reflection loops to execute multi-step objectives autonomously.',
+      'At Mani DeepTech Solutions, we architect multi-agent systems using LangGraph: a Planner Agent decomposes tasks, Worker Agents call APIs and databases, and an Evaluator Agent audits the output against strict acceptance criteria.'
     ]
   },
   {
     id: 'rag-optimization-production',
     title: 'Building Enterprise RAG: Practical Lessons from Production Retrieval',
-    slug: 'building-enterprise-rag-lessons',
     category: 'AI & ML',
     excerpt: 'Standard vector search often fails on complex unstructured documents. Here are the core techniques to achieve high-precision retrieval.',
-    author: 'Manideep Juvvala',
-    date: 'AI Engineering',
-    readTime: '5 min read',
-    tags: ['RAG', 'Vector Search', 'Cohere Rerank', 'Python'],
     content: [
       'Simple chunking and embedding fails on complex contracts and tabular reports. High-accuracy enterprise RAG requires a hybrid approach.',
       '1. Hybrid Search: Always combine dense semantic embeddings with sparse BM25 keyword matching using Reciprocal Rank Fusion (RRF).',
@@ -440,29 +431,19 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'choosing-final-year-project',
     title: 'How to Choose an IEEE Final Year Project That Gets You Hired',
-    slug: 'how-to-choose-winning-final-year-project',
     category: 'Career & Projects',
     excerpt: 'Avoid outdated textbook projects. How to select a contemporary IEEE-standard capstone project that impresses college examiners and tech recruiters.',
-    author: 'Manideep Juvvala',
-    date: 'Tech Education',
-    readTime: '4 min read',
-    tags: ['Final Year Projects', 'B.Tech', 'Career Roadmap', 'IEEE'],
     content: [
       'Your final year project is the most critical technical asset on a fresher resume. It demonstrates whether you can take a problem from ambiguity to working architecture.',
-      'Projects that stand out in 2026 combine modern AI (computer vision, RAG, agentic workflows), real-world domain utility, and a clean deployed web or mobile UI.',
+      'Projects that stand out combine modern AI (computer vision, RAG, agentic workflows), real-world domain utility, and a clean deployed web or mobile UI.',
       'We guide students in selecting IEEE-standard topics, mastering every line of code, and delivering complete documentation and viva presentations.'
     ]
   },
   {
     id: 'fullstack-modern-stack',
     title: 'The Modern Full-Stack Stack: React 19, TypeScript, and FastAPI',
-    slug: 'modern-fullstack-stack-react-fastapi',
     category: 'Web Development',
     excerpt: 'The ideal architecture for software products that require reactive, modern user interfaces alongside heavy asynchronous AI computation.',
-    author: 'Manideep Juvvala',
-    date: 'Web Engineering',
-    readTime: '4 min read',
-    tags: ['Full-Stack', 'React 19', 'FastAPI', 'TypeScript'],
     content: [
       'When building applications that blend complex AI model inference with fast user experiences, selecting the right stack prevents major engineering bottlenecks.',
       'React 19 with TypeScript and Tailwind CSS v4 delivers fast performance, strict type safety, and zero runtime CSS overhead.',

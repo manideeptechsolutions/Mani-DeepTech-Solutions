@@ -16,7 +16,7 @@ export interface ProjectItem {
   subtitle: string;
   description: string;
   tags: string[];
-  metrics?: string;
+  techHighlight?: string;
   featured?: boolean;
   architecture?: string[];
   deliverables?: string[];
@@ -49,12 +49,7 @@ export interface FinalYearProjectDomain {
 export interface BlogPost {
   id: string;
   title: string;
-  slug: string;
-  category: 'AI & ML' | 'Web Development' | 'Mobile Apps' | 'Career & Projects';
+  category: 'AI & ML' | 'Web Development' | 'Career & Projects';
   excerpt: string;
   content: string[];
-  author: string;
-  date: string;
-  readTime: string;
-  tags: string[];
 }

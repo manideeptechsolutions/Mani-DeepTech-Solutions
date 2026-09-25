@@ -113,9 +113,11 @@ export const MobileAppsTab: React.FC<MobileAppsTabProps> = ({ setActiveTab }) =>
                 <p className="text-sm sm:text-base font-semibold text-blue-600 mt-1 italic">
                   "{selectedProject.subtitle}"
                 </p>
-                <div className="mt-2 text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full inline-block font-mono">
-                  Metric: {selectedProject.metrics}
-                </div>
+                {selectedProject.techHighlight && (
+                  <div className="mt-2 text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full inline-block">
+                    ⚡ {selectedProject.techHighlight}
+                  </div>
+                )}
               </div>
 
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">

@@ -214,10 +214,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({ setActiveTab }) => {
             {/* Key Metrics Bar */}
             <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {[
-                { label: 'DeepTech & AI Projects', value: '50+' },
-                { label: 'Students & Devs Mentored', value: '500+' },
-                { label: 'Client Delivery Rating', value: '99.4%' },
-                { label: 'IEEE Project Viva Success', value: '100%' },
+                { label: 'Flagship Training Duration', value: '3 Months' },
+                { label: 'Hands-On Projects Built', value: '20+' },
+                { label: 'Theory & Hands-On Balance', value: '50 / 50' },
+                { label: 'Special Cohort Fee', value: '₹1,200' },
               ].map((stat, i) => (
                 <div key={i} className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-md text-center">
                   <div className="text-3xl sm:text-4xl font-black text-slate-900 font-mono text-gradient-multi">

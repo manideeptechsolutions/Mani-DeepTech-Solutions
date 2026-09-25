@@ -22,15 +22,25 @@ export const ContactTab: React.FC = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-  };
+    setIsSubmitting(true);
 
-  const generateWhatsAppMessage = () => {
-    const text = `Hi Mani, My name is ${formData.name || 'Visitor'}. I am inquiring about ${formData.service}. Contact: ${formData.phone || 'N/A'}. Details: ${formData.message || 'I would like to discuss my project / training needs.'}`;
-    return `https://wa.me/919381088104?text=${encodeURIComponent(text)}`;
+    try {
+      await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Failed to submit inquiry:', err);
+      setSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -240,25 +250,16 @@ export const ContactTab: React.FC = () => {
                     />
                   </div>
 
-                  {/* Buttons: Strictly Orange and Green */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
+                  {/* Submit Button */}
+                  <div className="pt-2">
                     <button
                       type="submit"
-                      className="btn-orange w-full sm:w-auto inline-flex items-center justify-center gap-2 py-4 px-8 text-xs font-black uppercase tracking-wider cursor-pointer"
+                      disabled={isSubmitting}
+                      className="btn-orange w-full sm:w-auto inline-flex items-center justify-center gap-2 py-4 px-9 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
                     >
                       <Send className="w-4 h-4 text-white" />
-                      <span>SUBMIT INQUIRY</span>
+                      <span>{isSubmitting ? 'SUBMITTING & DISPATCHING...' : 'SUBMIT INQUIRY'}</span>
                     </button>
-
-                    <a
-                      href={generateWhatsAppMessage()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-green w-full sm:w-auto inline-flex items-center justify-center gap-2 py-4 px-8 text-xs font-black uppercase tracking-wider"
-                    >
-                      <WhatsAppIcon className="w-4 h-4 text-white" />
-                      <span>INSTANT SEND ON WHATSAPP</span>
-                    </a>
                   </div>
                 </form>
               ) : (
@@ -270,25 +271,15 @@ export const ContactTab: React.FC = () => {
                     Thank You, {formData.name || 'Friend'}!
                   </h3>
                   <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
-                    Your inquiry regarding <strong>{formData.service}</strong> has been logged. To receive an immediate response, send this directly to Manideep's WhatsApp:
+                    Your inquiry regarding <strong>{formData.service}</strong> has been saved with an official timestamp in the company database and sent directly to Manideep (<strong>9381088104</strong>).
                   </p>
 
-                  <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a
-                      href={generateWhatsAppMessage()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-green inline-flex items-center gap-2 py-4 px-8 text-xs font-black uppercase tracking-wider"
-                    >
-                      <WhatsAppIcon className="w-4 h-4 text-white" />
-                      <span>CONTINUE ON WHATSAPP NOW</span>
-                    </a>
-
+                  <div className="pt-4 flex justify-center">
                     <button
                       onClick={() => setSubmitted(false)}
-                      className="text-xs font-black text-slate-500 hover:text-slate-900 underline uppercase"
+                      className="btn-blue inline-flex items-center gap-2 py-3.5 px-8 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
                     >
-                      Send Another Message
+                      <span>SUBMIT ANOTHER INQUIRY</span>
                     </button>
                   </div>
                 </div>

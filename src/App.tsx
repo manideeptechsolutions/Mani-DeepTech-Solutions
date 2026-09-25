@@ -3,6 +3,7 @@ import { TabType } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { FloatingConnect } from './components/FloatingWhatsApp';
+import { AdminPortal } from './components/AdminPortal';
 
 import { HomeTab } from './components/tabs/HomeTab';
 import { AiMlTab } from './components/tabs/AiMlTab';
@@ -17,10 +18,17 @@ import { ContactTab } from './components/tabs/ContactTab';
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
 
-  // Sync with URL Hash on load & on hash change
+  // Check URL pathname or hash for admin or tabs
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '') as TabType;
+    const handleUrlRouting = () => {
+      const pathname = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.replace('#', '').toLowerCase() as TabType;
+
+      if (pathname === '/admin' || pathname.startsWith('/admin/') || hash === 'admin') {
+        setActiveTab('admin');
+        return;
+      }
+
       const validTabs: TabType[] = [
         'home', 
         'ai-ml', 
@@ -32,15 +40,33 @@ export const App: React.FC = () => {
         'about', 
         'contact'
       ];
+
       if (validTabs.includes(hash)) {
         setActiveTab(hash);
       }
     };
 
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    handleUrlRouting();
+    window.addEventListener('hashchange', handleUrlRouting);
+    window.addEventListener('popstate', handleUrlRouting);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlRouting);
+      window.removeEventListener('popstate', handleUrlRouting);
+    };
   }, []);
+
+  const handleExitAdmin = () => {
+    setActiveTab('home');
+    window.location.hash = 'home';
+    if (window.location.pathname.toLowerCase().startsWith('/admin')) {
+      window.history.pushState({}, '', '/#home');
+    }
+  };
+
+  // If in Admin Mode, render the isolated Admin Portal
+  if (activeTab === 'admin') {
+    return <AdminPortal onExit={handleExitAdmin} />;
+  }
 
   const renderActiveTab = () => {
     switch (activeTab) {

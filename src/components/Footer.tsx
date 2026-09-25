@@ -108,7 +108,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
               </li>
               <li>
                 <button onClick={() => handleNav('blog')} className="hover:text-blue-600 transition-colors cursor-pointer">
-                  DeepTech Journal
+                  Insights of Mani DeepTech
                 </button>
               </li>
               <li>

@@ -404,53 +404,8 @@ export const FINAL_YEAR_DOMAINS: FinalYearProjectDomain[] = [
   }
 ];
 
-export const BLOG_POSTS: BlogPost[] = [
-  {
-    id: 'agentic-ai-architecture',
-    title: 'The Rise of Agentic AI: Why Multi-Agent Systems are Replacing Chatbots',
-    category: 'AI & ML',
-    excerpt: 'Simple Q&A chatbots are being replaced by autonomous multi-agent swarms capable of recursive planning, tool execution, reflection, and self-correction.',
-    content: [
-      'Enterprises are moving beyond simple prompt engineering. Single-prompt completions cannot handle multi-step, complex business workflows that require deterministic verification.',
-      'Agentic AI equips LLMs with short/long-term memory, tool calling, recursive task decomposition, and reflection loops to execute multi-step objectives autonomously.',
-      'At Mani DeepTech Solutions, we architect multi-agent systems using LangGraph: a Planner Agent decomposes tasks, Worker Agents call APIs and databases, and an Evaluator Agent audits the output against strict acceptance criteria.'
-    ]
-  },
-  {
-    id: 'rag-optimization-production',
-    title: 'Building Enterprise RAG: Practical Lessons from Production Retrieval',
-    category: 'AI & ML',
-    excerpt: 'Standard vector search often fails on complex unstructured documents. Here are the core techniques to achieve high-precision retrieval.',
-    content: [
-      'Simple chunking and embedding fails on complex contracts and tabular reports. High-accuracy enterprise RAG requires a hybrid approach.',
-      '1. Hybrid Search: Always combine dense semantic embeddings with sparse BM25 keyword matching using Reciprocal Rank Fusion (RRF).',
-      '2. Cross-Encoder Reranking: Passing candidate chunks through Cohere Rerank or BGE-Reranker filters false positives before sending to the LLM.',
-      '3. Citation Guardrails: Ensure the model directly cites chunk IDs and quotes supporting evidence.'
-    ]
-  },
-  {
-    id: 'choosing-final-year-project',
-    title: 'How to Choose an IEEE Final Year Project That Gets You Hired',
-    category: 'Career & Projects',
-    excerpt: 'Avoid outdated textbook projects. How to select a contemporary IEEE-standard capstone project that impresses college examiners and tech recruiters.',
-    content: [
-      'Your final year project is the most critical technical asset on a fresher resume. It demonstrates whether you can take a problem from ambiguity to working architecture.',
-      'Projects that stand out combine modern AI (computer vision, RAG, agentic workflows), real-world domain utility, and a clean deployed web or mobile UI.',
-      'We guide students in selecting IEEE-standard topics, mastering every line of code, and delivering complete documentation and viva presentations.'
-    ]
-  },
-  {
-    id: 'fullstack-modern-stack',
-    title: 'The Modern Full-Stack Stack: React 19, TypeScript, and FastAPI',
-    category: 'Web Development',
-    excerpt: 'The ideal architecture for software products that require reactive, modern user interfaces alongside heavy asynchronous AI computation.',
-    content: [
-      'When building applications that blend complex AI model inference with fast user experiences, selecting the right stack prevents major engineering bottlenecks.',
-      'React 19 with TypeScript and Tailwind CSS v4 delivers fast performance, strict type safety, and zero runtime CSS overhead.',
-      'Python FastAPI handles backend AI execution with PyTorch and LangChain seamlessly while delivering async performance on par with Node.js.'
-    ]
-  }
-];
+export const BLOG_POSTS: BlogPost[] = [];
+
 
 export const COMPANY_VALUES = [
   {

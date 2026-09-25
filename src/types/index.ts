@@ -7,7 +7,8 @@ export type TabType =
   | 'final-year-projects'
   | 'blog'
   | 'about'
-  | 'contact';
+  | 'contact'
+  | 'admin';
 
 export interface ProjectItem {
   id: string;
@@ -49,7 +50,23 @@ export interface FinalYearProjectDomain {
 export interface BlogPost {
   id: string;
   title: string;
-  category: 'AI & ML' | 'Web Development' | 'Career & Projects';
+  category: string;
+  author: string;
+  date: string;
+  imageDescription?: string;
+  imageUrl?: string;
   excerpt: string;
   content: string[];
+  createdAt?: string;
+}
+
+export interface ContactInquiry {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  service: string;
+  message: string;
+  timestamp: string;
+  createdAt?: string;
 }

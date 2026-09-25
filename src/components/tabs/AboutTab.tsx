@@ -3,7 +3,6 @@ import {
   User, 
   ShieldCheck, 
   Sparkles, 
-  CheckCircle2, 
   ArrowRight, 
   Cpu, 
   GraduationCap
@@ -157,46 +156,34 @@ export const AboutTab: React.FC<AboutTabProps> = ({ setActiveTab }) => {
         </div>
       </section>
 
-      {/* 4. COMPARISON MATRIX */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl p-8 sm:p-12 border-2 border-slate-200 shadow-xl space-y-8">
-          <h3 className="text-2xl sm:text-4xl font-black text-slate-900 text-center">
-            WHY WORK WITH MANI DEEPTECH SOLUTIONS?
-          </h3>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead>
-                <tr className="border-b-2 border-slate-200 text-slate-500 uppercase tracking-wider text-[11px]">
-                  <th className="py-4 px-5 font-black">CRITERIA</th>
-                  <th className="py-4 px-5 font-black text-blue-600 bg-blue-50/50 rounded-t-2xl">MANI DEEPTECH SOLUTIONS</th>
-                  <th className="py-4 px-5 font-bold text-slate-400">GENERIC AGENCY / COURSE</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
-                <tr>
-                  <td className="py-4 px-5 font-black text-slate-900">Code Quality & Architecture</td>
-                  <td className="py-4 px-5 font-black text-blue-700 bg-blue-50/30">Production-tested, modular & documented</td>
-                  <td className="py-4 px-5 text-slate-500">Uncommented scripts or copy-pasted templates</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-5 font-black text-slate-900">Teaching Methodology</td>
-                  <td className="py-4 px-5 font-black text-blue-700 bg-blue-50/30">50% Intuitive Theory + 50% Live Coding</td>
-                  <td className="py-4 px-5 text-slate-500">Pre-recorded slides with zero live interaction</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-5 font-black text-slate-900">Final Year Project Support</td>
-                  <td className="py-4 px-5 font-black text-blue-700 bg-blue-50/30">100% Code + 60-80pg IEEE Report + Viva Prep</td>
-                  <td className="py-4 px-5 text-slate-500">Just code or incomplete generic reports</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-5 font-black text-slate-900">Direct Founder Access</td>
-                  <td className="py-4 px-5 font-black text-blue-700 bg-blue-50/30">Direct WhatsApp with Manideep Juvvala</td>
-                  <td className="py-4 px-5 text-slate-500">Impersonal support tickets or bot replies</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      {/* 4. DIRECT CONTACT CTA */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+        <h3 className="text-2xl sm:text-4xl font-black text-slate-900">
+          Ready to Collaborate on Your Next Project?
+        </h3>
+        <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto font-medium">
+          Whether you need enterprise AI software or live mentorship, talk directly with Manideep Juvvala.
+        </p>
+        <div className="pt-2 flex flex-wrap justify-center gap-4">
+          <a
+            href={COMPANY_INFO.whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-green inline-flex items-center gap-2 px-7 py-3.5 text-xs font-black uppercase tracking-wider"
+          >
+            <WhatsAppIcon className="w-4 h-4 text-white" />
+            <span>Chat on WhatsApp</span>
+          </a>
+          <button
+            onClick={() => {
+              setActiveTab('contact');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="btn-orange inline-flex items-center gap-2 px-7 py-3.5 text-xs font-black uppercase tracking-wider cursor-pointer"
+          >
+            <span>Open Contact Form</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </section>
 

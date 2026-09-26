@@ -1,6 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from './lib/db';
+import { 
+  verifyAdminToken, 
+  sanitizeString, 
+  isValidObjectId 
+} from './lib/security';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { db } = await connectToDatabase();
     const collection = db.collection('insights');
 
-    // GET /api/blogs - List all insights
+    // GET /api/blogs - List all insights (PUBLIC for website visitors)
     if (req.method === 'GET') {
       const items = await collection.find({}).sort({ createdAt: -1 }).toArray();
       const formatted = items.map(doc => ({
@@ -33,8 +38,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true, data: formatted });
     }
 
-    // POST /api/blogs - Create new insight
+    // POST /api/blogs - Create new insight (PROTECTED: Admin Only)
     if (req.method === 'POST') {
+      const auth = verifyAdminToken(req.headers.authorization);
+      if (!auth.valid) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin authentication required to publish insights' });
+      }
+
       const { 
         title, 
         category, 
@@ -46,19 +56,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         content 
       } = req.body || {};
 
-      if (!title || !excerpt) {
-        return res.status(400).json({ success: false, error: 'Title and Excerpt are required' });
+      if (!title || typeof title !== 'string' || !excerpt || typeof excerpt !== 'string') {
+        return res.status(400).json({ success: false, error: 'Valid Title and Excerpt are required' });
       }
 
+      const cleanTitle = sanitizeString(title, 200);
+      const cleanExcerpt = sanitizeString(excerpt, 500);
+      const cleanCategory = sanitizeString(category || 'AI & ML', 50);
+      const cleanAuthor = sanitizeString(author || 'Manideep Juvvala', 100);
+      const cleanDate = sanitizeString(date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), 50);
+      const cleanImageDesc = sanitizeString(imageDescription || '', 500);
+      const cleanImageUrl = typeof imageUrl === 'string' && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) 
+        ? imageUrl.trim().slice(0, 1000) 
+        : '';
+
+      const rawContent = Array.isArray(content) ? content : (content ? [content] : []);
+      const cleanContent = rawContent.map((item: any) => sanitizeString(String(item), 5000)).filter((p: string) => p.length > 0);
+
       const newDoc = {
-        title: title.trim(),
-        category: category || 'AI & ML',
-        author: author || 'Manideep Juvvala',
-        date: date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        imageDescription: imageDescription || '',
-        imageUrl: imageUrl || '',
-        excerpt: excerpt.trim(),
-        content: Array.isArray(content) ? content : (content ? [content] : []),
+        title: cleanTitle,
+        category: cleanCategory,
+        author: cleanAuthor,
+        date: cleanDate,
+        imageDescription: cleanImageDesc,
+        imageUrl: cleanImageUrl,
+        excerpt: cleanExcerpt,
+        content: cleanContent,
         createdAt: new Date().toISOString()
       };
 
@@ -72,11 +95,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // DELETE /api/blogs - Delete insight
+    // DELETE /api/blogs - Delete insight (PROTECTED: Admin Only)
     if (req.method === 'DELETE') {
+      const auth = verifyAdminToken(req.headers.authorization);
+      if (!auth.valid) {
+        return res.status(401).json({ success: false, error: 'Unauthorized: Admin authentication required to delete insights' });
+      }
+
       const id = (req.query.id as string) || req.body?.id;
-      if (!id) {
-        return res.status(400).json({ success: false, error: 'Insight ID is required' });
+      if (!id || !isValidObjectId(id)) {
+        return res.status(400).json({ success: false, error: 'Valid 24-character Insight ID is required' });
       }
 
       await collection.deleteOne({ _id: new ObjectId(id) });
@@ -85,6 +113,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
-    return res.status(500).json({ success: false, error: error.message || 'Database error' });
+    return res.status(500).json({ success: false, error: 'Internal database processing error' });
   }
 }

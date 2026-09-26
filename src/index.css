@@ -168,3 +168,15 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Security & Anti-Tamper Protection */
+img, svg, button, nav, header, footer {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+::selection {
+  background-color: #2563eb;
+  color: #ffffff;
+}

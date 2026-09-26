@@ -44,6 +44,11 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
           res.end(JSON.stringify(data));
         };
 
+        const checkAuth = () => {
+          const auth = req.headers['authorization'] || '';
+          return typeof auth === 'string' && auth.startsWith('Bearer ') && auth.length > 10;
+        };
+
         // 1. /api/login
         if (url.startsWith('/api/login') && req.method === 'POST') {
           try {
@@ -90,6 +95,7 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
             }
 
             if (req.method === 'POST') {
+              if (!checkAuth()) return sendJson(401, { success: false, error: 'Unauthorized: Admin authentication required' });
               const body = await parseJson();
               if (!body.title || !body.excerpt) {
                 return sendJson(400, { success: false, error: 'Title and Excerpt are required' });
@@ -110,6 +116,7 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
             }
 
             if (req.method === 'DELETE') {
+              if (!checkAuth()) return sendJson(401, { success: false, error: 'Unauthorized: Admin authentication required' });
               const urlObj = new URL(url, 'http://localhost');
               const id = urlObj.searchParams.get('id');
               if (!id) return sendJson(400, { success: false, error: 'Insight ID is required' });
@@ -128,6 +135,7 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
             const collection = db.collection('contacts');
 
             if (req.method === 'GET') {
+              if (!checkAuth()) return sendJson(401, { success: false, error: 'Unauthorized: Admin authentication required' });
               const items = await collection.find({}).sort({ createdAt: -1 }).toArray();
               const formatted = items.map(doc => ({
                 id: doc._id.toString(),
@@ -212,6 +220,7 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
             }
 
             if (req.method === 'DELETE') {
+              if (!checkAuth()) return sendJson(401, { success: false, error: 'Unauthorized: Admin authentication required' });
               const urlObj = new URL(url, 'http://localhost');
               const id = urlObj.searchParams.get('id');
               if (!id) return sendJson(400, { success: false, error: 'Contact ID is required' });

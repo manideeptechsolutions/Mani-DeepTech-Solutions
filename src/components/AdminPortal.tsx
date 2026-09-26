@@ -79,11 +79,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
     }
   };
 
+  const getAuthHeader = () => {
+    const token = localStorage.getItem('mdt_admin_token') || '';
+    return { 'Authorization': `Bearer ${token}` };
+  };
+
   // Fetch Contacts from MongoDB
   const fetchContacts = async () => {
     setIsLoadingContacts(true);
     try {
-      const res = await fetch('/api/contacts');
+      const res = await fetch('/api/contacts', {
+        headers: getAuthHeader()
+      });
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setContacts(data.data);
@@ -155,7 +162,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
 
       const res = await fetch('/api/blogs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        },
         body: JSON.stringify({
           ...insightForm,
           content: paragraphs.length > 0 ? paragraphs : [insightForm.excerpt]
@@ -189,10 +199,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   const handleDeleteInsight = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this insight?')) return;
     try {
-      const res = await fetch(`/api/blogs?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/blogs?id=${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeader()
+      });
       const data = await res.json();
       if (data.success) {
         setInsights(prev => prev.filter(i => i.id !== id));
+      } else {
+        alert(data.error || 'Failed to delete insight.');
       }
     } catch (err) {
       alert('Failed to delete insight.');
@@ -203,10 +218,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   const handleDeleteContact = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this contact lead?')) return;
     try {
-      const res = await fetch(`/api/contacts?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/contacts?id=${id}`, { 
+        method: 'DELETE',
+        headers: getAuthHeader()
+      });
       const data = await res.json();
       if (data.success) {
         setContacts(prev => prev.filter(c => c.id !== id));
+      } else {
+        alert(data.error || 'Failed to delete contact.');
       }
     } catch (err) {
       alert('Failed to delete contact.');

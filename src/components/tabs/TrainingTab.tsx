@@ -67,7 +67,7 @@ export const TrainingTab: React.FC<TrainingTabProps> = ({ setActiveTab }) => {
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <a
-                  href={`https://wa.me/919381088104?text=Hi%20Mani%2C%20I%20want%20to%20enroll%20in%20the%20AI%20Battlepass%20program%20for%20Rs.%201%2C200.`}
+                  href="https://forms.gle/5Ax5qbXBpUDozCRN7"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-orange inline-flex items-center gap-2 px-8 py-4 text-xs font-black uppercase tracking-wider"

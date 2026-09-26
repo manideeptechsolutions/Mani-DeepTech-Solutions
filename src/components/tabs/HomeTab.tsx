@@ -456,13 +456,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({ setActiveTab }) => {
               </div>
 
               <div className="flex flex-wrap items-center gap-4 pt-3">
-                <button
-                  onClick={() => handleTabChange('training')}
-                  className="btn-orange inline-flex items-center gap-2 px-8 py-4 text-xs font-black uppercase tracking-wider cursor-pointer"
+                <a
+                  href="https://forms.gle/5Ax5qbXBpUDozCRN7"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-orange inline-flex items-center gap-2 px-8 py-4 text-xs font-black uppercase tracking-wider"
                 >
                   <span>ENROLL NOW — ₹1,200</span>
                   <ArrowRight className="w-4 h-4 text-white" />
-                </button>
+                </a>
 
                 <a
                   href={COMPANY_INFO.whatsappUrl}

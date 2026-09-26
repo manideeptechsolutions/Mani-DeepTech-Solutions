@@ -55,6 +55,18 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // Toggle admin-active body class for copy/paste and selection permissions
+  useEffect(() => {
+    if (activeTab === 'admin') {
+      document.body.classList.add('admin-active');
+    } else {
+      document.body.classList.remove('admin-active');
+    }
+    return () => {
+      document.body.classList.remove('admin-active');
+    };
+  }, [activeTab]);
+
   const handleExitAdmin = () => {
     setActiveTab('home');
     window.location.hash = 'home';

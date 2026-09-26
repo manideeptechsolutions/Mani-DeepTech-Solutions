@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShieldCheck, 
   Lock, 
@@ -17,7 +17,8 @@ import {
   AlertCircle,
   X,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  UploadCloud
 } from 'lucide-react';
 import { BlogPost, ContactInquiry } from '../types';
 import { COMPANY_INFO } from '../data/websiteData';
@@ -58,6 +59,78 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
     type: 'idle',
     message: ''
   });
+
+  // Media Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
+  const [uploadedImagePreview, setUploadedImagePreview] = useState<string>('');
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
+
+  const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (PNG, JPG, WebP, SVG, etc.)');
+      return;
+    }
+
+    setUploadedFileName(file.name);
+    setIsCompressingImage(true);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const rawDataUrl = event.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        // Auto-compress & scale to max 1200px width/height for fast loading
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1200;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.85);
+          setUploadedImagePreview(compressed);
+          setInsightForm(prev => ({ ...prev, imageUrl: compressed }));
+        } else {
+          setUploadedImagePreview(rawDataUrl);
+          setInsightForm(prev => ({ ...prev, imageUrl: rawDataUrl }));
+        }
+        setIsCompressingImage(false);
+      };
+      img.onerror = () => {
+        setUploadedImagePreview(rawDataUrl);
+        setInsightForm(prev => ({ ...prev, imageUrl: rawDataUrl }));
+        setIsCompressingImage(false);
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveUploadedImage = () => {
+    setUploadedImagePreview('');
+    setUploadedFileName('');
+    setInsightForm(prev => ({ ...prev, imageUrl: '' }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Contacts State
   const [contacts, setContacts] = useState<ContactInquiry[]>([]);
@@ -185,6 +258,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
           excerpt: '',
           content: ''
         });
+        setUploadedImagePreview('');
+        setUploadedFileName('');
+        if (fileInputRef.current) fileInputRef.current.value = '';
         setIsCreatingInsight(false);
         fetchInsights();
       } else {
@@ -238,7 +314,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   // ----------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-mesh-grid flex items-center justify-center p-4 sm:p-6">
+      <div 
+        className="min-h-screen bg-mesh-grid flex items-center justify-center p-4 sm:p-6 admin-portal-root"
+        data-admin-portal="true"
+      >
         <div className="bg-white rounded-3xl max-w-md w-full p-8 sm:p-10 border-2 border-slate-200 shadow-2xl space-y-8 relative">
           
           <div className="text-center space-y-3">
@@ -332,7 +411,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   // LOGGED-IN ADMIN DASHBOARD
   // ----------------------------------------------------
   return (
-    <div className="min-h-screen bg-mesh-grid text-slate-900 pb-20 pt-10">
+    <div 
+      className="min-h-screen bg-mesh-grid text-slate-900 pb-20 pt-10 admin-portal-root"
+      data-admin-portal="true"
+    >
       
       {/* Top Admin Navigation Bar */}
       <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
@@ -707,33 +789,110 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-700">
-                    Date
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Date
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="25 Sep 2026"
+                  value={insightForm.date}
+                  onChange={(e) => setInsightForm({ ...insightForm, date: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* MEDIA UPLOAD SECTION */}
+              <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border-2 border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-blue-600" />
+                    <span>Media Upload / Diagram (Optional)</span>
                   </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="25 Sep 2026"
-                    value={insightForm.date}
-                    onChange={(e) => setInsightForm({ ...insightForm, date: e.target.value })}
-                    className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
+                  <span className="text-[11px] text-slate-400 font-semibold">
+                    Upload from device or enter URL
+                  </span>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-700">
-                    Image URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://... (or leave empty)"
-                    value={insightForm.imageUrl}
-                    onChange={(e) => setInsightForm({ ...insightForm, imageUrl: e.target.value })}
-                    className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+                {/* Hidden File Input */}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept="image/*" 
+                  onChange={handleImageFileSelect} 
+                  className="hidden" 
+                />
+
+                {/* If image is already attached: Preview Card */}
+                {(uploadedImagePreview || insightForm.imageUrl) ? (
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-slate-200 bg-white p-3 space-y-3">
+                    <div className="relative h-48 w-full rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200">
+                      <img 
+                        src={uploadedImagePreview || insightForm.imageUrl} 
+                        alt="Media Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveUploadedImage}
+                        className="absolute top-2 right-2 p-2 rounded-xl bg-red-600 text-white hover:bg-red-700 shadow-lg cursor-pointer transition-transform hover:scale-105"
+                        title="Remove image"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 truncate max-w-xs">
+                        {uploadedFileName || 'Media attached'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-blue-600 hover:text-blue-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Change File</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Upload Button and URL Fallback */
+                  <div className="space-y-3">
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-6 text-center bg-white cursor-pointer transition-all hover:bg-blue-50/50 group"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-blue-50 group-hover:bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-2 transition-colors">
+                        <UploadCloud className="w-6 h-6" />
+                      </div>
+                      <div className="text-xs font-black text-slate-800 uppercase tracking-wider group-hover:text-blue-600">
+                        {isCompressingImage ? 'Optimizing Image...' : 'Click to Upload Media / Screenshot from Device'}
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                        Supports PNG, JPG, WebP, GIF, SVG (Auto-compressed for ultra-fast loading)
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="h-px bg-slate-200 flex-1"></div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400">or paste image link</span>
+                      <div className="h-px bg-slate-200 flex-1"></div>
+                    </div>
+
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/... (optional external link)"
+                      value={insightForm.imageUrl}
+                      onChange={(e) => {
+                        setInsightForm({ ...insightForm, imageUrl: e.target.value });
+                        setUploadedImagePreview(e.target.value);
+                      }}
+                      className="w-full p-2.5 rounded-xl bg-white border border-slate-200 text-xs font-medium focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">

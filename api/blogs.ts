@@ -66,9 +66,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const cleanAuthor = sanitizeString(author || 'Manideep Juvvala', 100);
       const cleanDate = sanitizeString(date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), 50);
       const cleanImageDesc = sanitizeString(imageDescription || '', 500);
-      const cleanImageUrl = typeof imageUrl === 'string' && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) 
-        ? imageUrl.trim().slice(0, 1000) 
-        : '';
+      const cleanImageUrl = typeof imageUrl === 'string' && (
+        imageUrl.startsWith('http://') || 
+        imageUrl.startsWith('https://') || 
+        imageUrl.startsWith('/') || 
+        imageUrl.startsWith('data:image/')
+      ) ? imageUrl.trim().slice(0, 3000000) : '';
 
       const rawContent = Array.isArray(content) ? content : (content ? [content] : []);
       const cleanContent = rawContent.map((item: any) => sanitizeString(String(item), 5000)).filter((p: string) => p.length > 0);

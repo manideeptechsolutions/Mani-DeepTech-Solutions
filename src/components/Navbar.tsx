@@ -65,8 +65,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors leading-tight">
                 Mani DeepTech
               </span>
-              <span className="text-[10px] font-extrabold text-emerald-700 tracking-wider uppercase">
-                BY MANI DEEPTECH SOLUTIONS
+              <span className="text-[10px] font-black text-blue-600 tracking-widest uppercase">
+                SOLUTIONS
               </span>
             </div>
           </button>

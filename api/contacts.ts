@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from './lib/db';
-import { sendDirectWhatsAppNotification } from './lib/whatsapp';
 import { 
   verifyAdminToken, 
   sanitizeString, 
@@ -88,12 +87,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const result = await collection.insertOne(newContact);
 
-      // Directly send WhatsApp message to Manideep (9381088104) from server
-      await sendDirectWhatsAppNotification(newContact);
-
       return res.status(201).json({
         success: true,
-        message: 'Inquiry saved successfully and notification sent to 9381088104',
+        message: 'Inquiry saved successfully and recorded in admin portal',
         data: {
           id: result.insertedId.toString(),
           ...newContact
@@ -106,6 +102,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const auth = verifyAdminToken(req.headers.authorization);
       if (!auth.valid) {
         return res.status(401).json({ success: false, error: 'Unauthorized: Admin authentication required to delete leads' });
+      }
+
+      // Check for bulk clear all option
+      const isClearAll = req.query.all === 'true' || req.body?.all === true;
+      if (isClearAll) {
+        await collection.deleteMany({});
+        return res.status(200).json({ success: true, message: 'All inquiries cleared successfully' });
       }
 
       const id = (req.query.id as string) || req.body?.id;

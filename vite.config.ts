@@ -54,17 +54,31 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
           try {
             const body = await parseJson();
             const email = (body.email || '').trim().toLowerCase();
-            const password = body.password || '';
+            const password = (body.password || '').trim();
             const validEmails = [ADMIN_EMAIL, 'manideeptechsolutions@gmai.com', 'manideeptechsolutions@gmail.com'].filter(Boolean);
             const validPassword = ADMIN_PASSWORD;
 
             if (validPassword && validEmails.includes(email) && password === validPassword) {
               return sendJson(200, {
                 success: true,
-                user: { email, name: 'Manideep Juvvala', role: 'admin' },
+                user: { email, name: 'Manideep Juvvala', role: 'super_admin' },
                 token: 'admin-session-' + Date.now()
               });
             }
+
+            // Check MongoDB `admins` collection
+            try {
+              const db = await getDb();
+              const customAdmin = await db.collection('admins').findOne({ email, password });
+              if (customAdmin) {
+                return sendJson(200, {
+                  success: true,
+                  user: { email, name: customAdmin.name || 'Admin User', role: customAdmin.role || 'admin' },
+                  token: 'admin-session-' + Date.now()
+                });
+              }
+            } catch {}
+
             return sendJson(401, { success: false, error: 'Invalid credentials. Please verify email and password.' });
           } catch (e: any) {
             return sendJson(500, { success: false, error: e.message });
@@ -174,47 +188,9 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
 
               const result = await collection.insertOne(newContact);
 
-              const textMessage = 
-                `🔔 *NEW WEBSITE INQUIRY — MANI DEEPTECH SOLUTIONS*\n\n` +
-                `👤 *Name:* ${newContact.name}\n` +
-                `📞 *Phone:* ${newContact.phone}\n` +
-                `📧 *Email:* ${newContact.email || 'N/A'}\n` +
-                `💼 *Service:* ${newContact.service}\n` +
-                `📝 *Message:* ${newContact.message || 'No additional message'}\n` +
-                `⏰ *Timestamp:* ${newContact.timestamp}`;
-
-              const targetNumber = '919381088104';
-
-              // CallMeBot direct WhatsApp dispatch
-              const callMeBotKey = env.CALLMEBOT_API_KEY || process.env.CALLMEBOT_API_KEY;
-              if (callMeBotKey) {
-                try {
-                  const cmUrl = `https://api.callmebot.com/whatsapp.php?phone=${targetNumber}&text=${encodeURIComponent(textMessage)}&apikey=${callMeBotKey}`;
-                  await fetch(cmUrl);
-                } catch (e: any) {
-                  console.error('[WhatsApp CallMeBot Error]:', e.message);
-                }
-              }
-
-              // Custom WhatsApp API / Webhook dispatch
-              const whatsappUrl = env.WHATSAPP_API_URL || process.env.WHATSAPP_API_URL;
-              if (whatsappUrl) {
-                try {
-                  await fetch(whatsappUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: targetNumber, from: targetNumber, message: textMessage })
-                  });
-                } catch (e: any) {
-                  console.error('[WhatsApp Gateway Error]:', e.message);
-                }
-              }
-
-              console.log(`[WhatsApp Direct Message to 9381088104]:\n${textMessage}`);
-
               return sendJson(201, {
                 success: true,
-                message: 'Inquiry saved and sent directly to Manideep (9381088104)',
+                message: 'Inquiry saved and recorded in admin portal',
                 data: { id: result.insertedId.toString(), ...newContact }
               });
             }
@@ -222,10 +198,62 @@ function apiDevPlugin(env: Record<string, string>): Plugin {
             if (req.method === 'DELETE') {
               if (!checkAuth()) return sendJson(401, { success: false, error: 'Unauthorized: Admin authentication required' });
               const urlObj = new URL(url, 'http://localhost');
+              const isClearAll = urlObj.searchParams.get('all') === 'true';
+              if (isClearAll) {
+                await collection.deleteMany({});
+                return sendJson(200, { success: true, message: 'All inquiries cleared successfully' });
+              }
               const id = urlObj.searchParams.get('id');
               if (!id) return sendJson(400, { success: false, error: 'Contact ID is required' });
               await collection.deleteOne({ _id: new ObjectId(id) });
               return sendJson(200, { success: true, message: 'Inquiry deleted successfully' });
+            }
+          } catch (e: any) {
+            return sendJson(500, { success: false, error: e.message });
+          }
+        }
+
+        // 4. /api/admins
+        if (url.startsWith('/api/admins')) {
+          if (!checkAuth()) return sendJson(401, { success: false, error: 'Unauthorized: Admin authentication required' });
+          try {
+            const db = await getDb();
+            const collection = db.collection('admins');
+
+            if (req.method === 'GET') {
+              const items = await collection.find({}).sort({ createdAt: -1 }).toArray();
+              const formatted = items.map(doc => ({
+                id: doc._id.toString(),
+                name: doc.name || 'Admin User',
+                email: doc.email || '',
+                role: doc.role || 'Admin',
+                createdAt: doc.createdAt || new Date().toISOString()
+              }));
+              return sendJson(200, { success: true, data: formatted });
+            }
+
+            if (req.method === 'POST') {
+              const body = await parseJson();
+              if (!body.name || !body.email || !body.password) {
+                return sendJson(400, { success: false, error: 'Name, Email, and Password are required' });
+              }
+              const newAdmin = {
+                name: body.name.trim(),
+                email: body.email.trim().toLowerCase(),
+                password: body.password.trim(),
+                role: body.role || 'Admin',
+                createdAt: new Date().toISOString()
+              };
+              const result = await collection.insertOne(newAdmin);
+              return sendJson(201, { success: true, data: { id: result.insertedId.toString(), ...newAdmin } });
+            }
+
+            if (req.method === 'DELETE') {
+              const urlObj = new URL(url, 'http://localhost');
+              const id = urlObj.searchParams.get('id');
+              if (!id) return sendJson(400, { success: false, error: 'Admin ID is required' });
+              await collection.deleteOne({ _id: new ObjectId(id) });
+              return sendJson(200, { success: true, message: 'Admin deleted successfully' });
             }
           } catch (e: any) {
             return sendJson(500, { success: false, error: e.message });

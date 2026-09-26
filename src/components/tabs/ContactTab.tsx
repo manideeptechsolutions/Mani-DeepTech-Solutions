@@ -179,7 +179,7 @@ export const ContactTab: React.FC = () => {
                       Send a Message or Project Scope
                     </h3>
                     <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                      Fill out your details and we will reply promptly. You can also send this info directly to WhatsApp!
+                      Fill out your details below. Our team reviews all inquiries directly in our internal portal and will connect with you promptly.
                     </p>
                   </div>
 
@@ -258,7 +258,7 @@ export const ContactTab: React.FC = () => {
                       className="btn-orange w-full sm:w-auto inline-flex items-center justify-center gap-2 py-4 px-9 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
                     >
                       <Send className="w-4 h-4 text-white" />
-                      <span>{isSubmitting ? 'SUBMITTING & DISPATCHING...' : 'SUBMIT INQUIRY'}</span>
+                      <span>{isSubmitting ? 'SUBMITTING INQUIRY...' : 'SUBMIT INQUIRY'}</span>
                     </button>
                   </div>
                 </form>
@@ -271,7 +271,7 @@ export const ContactTab: React.FC = () => {
                     Thank You, {formData.name || 'Friend'}!
                   </h3>
                   <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
-                    Your inquiry regarding <strong>{formData.service}</strong> has been saved with an official timestamp in the company database and sent directly to Manideep (<strong>9381088104</strong>).
+                    Your inquiry regarding <strong>{formData.service}</strong> has been successfully received and recorded in our internal portal. We will review your message and reach out to you shortly.
                   </p>
 
                   <div className="pt-4 flex justify-center">

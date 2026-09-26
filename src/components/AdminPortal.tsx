@@ -18,11 +18,22 @@ import {
   X,
   RefreshCw,
   Sparkles,
-  UploadCloud
+  UploadCloud,
+  Users,
+  UserPlus,
+  Download
 } from 'lucide-react';
 import { BlogPost, ContactInquiry } from '../types';
 import { COMPANY_INFO } from '../data/websiteData';
 import { WhatsAppIcon } from './SocialIcons';
+
+interface CustomAdmin {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string;
+}
 
 interface AdminPortalProps {
   onExit: () => void;
@@ -38,8 +49,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Active Admin Tab: 'insights' | 'contacts'
-  const [adminTab, setAdminTab] = useState<'insights' | 'contacts'>('insights');
+  // Active Admin Tab: 'insights' | 'contacts' | 'admins'
+  const [adminTab, setAdminTab] = useState<'insights' | 'contacts' | 'admins'>('insights');
 
   // Insights State
   const [insights, setInsights] = useState<BlogPost[]>([]);
@@ -136,6 +147,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
   const [contacts, setContacts] = useState<ContactInquiry[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(false);
 
+  // Custom Admin Accounts State
+  const [customAdmins, setCustomAdmins] = useState<CustomAdmin[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
+  const [newAdminForm, setNewAdminForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'Co-Admin'
+  });
+  const [adminStatus, setAdminStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error'; message: string }>({
+    type: 'idle',
+    message: ''
+  });
+
   // Fetch Insights from MongoDB
   const fetchInsights = async () => {
     setIsLoadingInsights(true);
@@ -179,8 +205,119 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
     if (isAuthenticated) {
       fetchInsights();
       fetchContacts();
+      fetchAdmins();
     }
   }, [isAuthenticated]);
+
+  // Fetch Custom Admins from MongoDB
+  const fetchAdmins = async () => {
+    setIsLoadingAdmins(true);
+    try {
+      const res = await fetch('/api/admins', { headers: getAuthHeader() });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setCustomAdmins(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch admins:', err);
+    } finally {
+      setIsLoadingAdmins(false);
+    }
+  };
+
+  // Create New Admin Account
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminForm.name || !newAdminForm.email || !newAdminForm.password) {
+      setAdminStatus({ type: 'error', message: 'All fields are required.' });
+      return;
+    }
+
+    setAdminStatus({ type: 'loading', message: 'Creating administrator account...' });
+
+    try {
+      const res = await fetch('/api/admins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify(newAdminForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminStatus({ type: 'success', message: 'Administrator created successfully!' });
+        setNewAdminForm({ name: '', email: '', password: '', role: 'Co-Admin' });
+        setIsCreatingAdmin(false);
+        fetchAdmins();
+      } else {
+        setAdminStatus({ type: 'error', message: data.error || 'Failed to create administrator.' });
+      }
+    } catch (err) {
+      setAdminStatus({ type: 'error', message: 'Server error creating administrator.' });
+    }
+  };
+
+  // Revoke Admin Account
+  const handleDeleteAdmin = async (id: string) => {
+    if (!window.confirm('Are you sure you want to revoke access for this admin?')) return;
+    try {
+      const res = await fetch(`/api/admins?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeader()
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCustomAdmins(prev => prev.filter(a => a.id !== id));
+      } else {
+        alert(data.error || 'Failed to delete admin.');
+      }
+    } catch (err) {
+      alert('Failed to delete admin.');
+    }
+  };
+
+  // Bulk Delete All Contacts
+  const handleClearAllContacts = async () => {
+    if (!window.confirm('DANGER: Are you sure you want to delete ALL customer inquiries? This action cannot be undone.')) return;
+    try {
+      const res = await fetch('/api/contacts?all=true', {
+        method: 'DELETE',
+        headers: getAuthHeader()
+      });
+      const data = await res.json();
+      if (data.success) {
+        setContacts([]);
+      } else {
+        alert(data.error || 'Failed to clear inquiries.');
+      }
+    } catch (err) {
+      alert('Failed to clear inquiries.');
+    }
+  };
+
+  // Export Contacts to CSV File
+  const handleExportContactsCsv = () => {
+    if (contacts.length === 0) {
+      alert('No customer inquiries available to export.');
+      return;
+    }
+    const headers = ['Name', 'Phone', 'Email', 'Service Required', 'Message', 'Timestamp'];
+    const rows = contacts.map(c => [
+      `"${c.name.replace(/"/g, '""')}"`,
+      `"${c.phone.replace(/"/g, '""')}"`,
+      `"${c.email.replace(/"/g, '""')}"`,
+      `"${c.service.replace(/"/g, '""')}"`,
+      `"${(c.message || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+      `"${c.timestamp.replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Mani_DeepTech_Customer_Leads_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Handle Login
   const handleLogin = async (e: React.FormEvent) => {
@@ -495,6 +632,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
                 <span>Contact Inquiries & Leads ({contacts.length})</span>
               </span>
             </button>
+
+            <button
+              onClick={() => setAdminTab('admins')}
+              className={`px-5 py-2.5 rounded-2xl text-xs font-black tracking-wide transition-all cursor-pointer ${
+                adminTab === 'admins'
+                  ? 'btn-orange shadow-md'
+                  : 'bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>Admin Team & Options ({customAdmins.length + 1})</span>
+              </span>
+            </button>
           </div>
 
           {adminTab === 'insights' && (
@@ -508,12 +659,44 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
           )}
 
           {adminTab === 'contacts' && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleExportContactsCsv}
+                className="btn-white-outline inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+                title="Export all customer leads to CSV spreadsheet"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV</span>
+              </button>
+
+              {contacts.length > 0 && (
+                <button
+                  onClick={handleClearAllContacts}
+                  className="px-3.5 py-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-600 hover:text-white border border-red-200 text-xs font-black uppercase tracking-wider transition-all cursor-pointer inline-flex items-center gap-1.5"
+                  title="Delete all customer inquiries from database"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Clear All</span>
+                </button>
+              )}
+
+              <button
+                onClick={fetchContacts}
+                className="btn-white-outline inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+              >
+                <RefreshCw className="w-4 h-4 text-blue-600" />
+                <span>Refresh</span>
+              </button>
+            </div>
+          )}
+
+          {adminTab === 'admins' && (
             <button
-              onClick={fetchContacts}
-              className="btn-white-outline inline-flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-wider cursor-pointer"
+              onClick={() => setIsCreatingAdmin(true)}
+              className="btn-orange inline-flex items-center gap-2 px-6 py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
             >
-              <RefreshCw className="w-4 h-4 text-blue-600" />
-              <span>Refresh Leads</span>
+              <UserPlus className="w-4 h-4" />
+              <span>CREATE NEW ADMIN</span>
             </button>
           )}
         </div>
@@ -648,22 +831,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
                       </div>
 
                       <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <a
-                          href={`https://wa.me/91${contact.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(contact.name)}%2C%20this%20is%20Manideep%20from%20Mani%20DeepTech%20Solutions.`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-green inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider"
-                        >
-                          <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
-                          <span>Chat on WhatsApp</span>
-                        </a>
-
                         <button
                           onClick={() => handleDeleteContact(contact.id)}
-                          className="p-2.5 rounded-xl text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
-                          title="Delete Lead"
+                          className="px-4 py-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-600 hover:text-white border border-red-200 text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                          title="Delete Inquiry"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete Inquiry</span>
                         </button>
                       </div>
                     </div>
@@ -699,6 +873,117 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
                 ))}
               </div>
             )}
+
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 3: ADMIN TEAM & SYSTEM OPTIONS */}
+        {/* ==================================================== */}
+        {adminTab === 'admins' && (
+          <div className="space-y-8">
+
+            {/* Admin Overview Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-md space-y-2">
+                <div className="flex items-center justify-between text-xs font-black uppercase text-slate-400 tracking-wider">
+                  <span>Primary Super Admin</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="text-xl font-black text-slate-900">Manideep Juvvala</div>
+                <div className="text-xs font-mono text-emerald-700 font-bold">manideeptechsolutions@gmai.com</div>
+              </div>
+
+              <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-md space-y-2">
+                <div className="flex items-center justify-between text-xs font-black uppercase text-slate-400 tracking-wider">
+                  <span>Custom Admins</span>
+                  <Users className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="text-3xl font-black text-slate-900">{customAdmins.length}</div>
+                <div className="text-xs text-slate-500 font-semibold">Active team members</div>
+              </div>
+
+              <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-md space-y-2">
+                <div className="flex items-center justify-between text-xs font-black uppercase text-slate-400 tracking-wider">
+                  <span>MongoDB Cluster</span>
+                  <Sparkles className="w-4 h-4 text-orange-500" />
+                </div>
+                <div className="text-xl font-black text-slate-900">manideep_deeptech</div>
+                <div className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-ping" />
+                  <span>Connected & Live</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-md space-y-2">
+                <div className="flex items-center justify-between text-xs font-black uppercase text-slate-400 tracking-wider">
+                  <span>Security Shield</span>
+                  <Lock className="w-4 h-4 text-purple-600" />
+                </div>
+                <div className="text-xl font-black text-slate-900">Encrypted HMAC</div>
+                <div className="text-xs text-purple-700 font-bold">Anti-Inspection Active</div>
+              </div>
+            </div>
+
+            {/* Custom Admin Team Members List */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-slate-200 shadow-md space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">Authorized Admin Accounts</h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Team members with custom admin accounts can log into the /admin portal using their email & password.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsCreatingAdmin(true)}
+                  className="btn-orange inline-flex items-center gap-2 px-5 py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>NEW ADMIN</span>
+                </button>
+              </div>
+
+              {isLoadingAdmins ? (
+                <div className="text-center py-10">
+                  <RefreshCw className="w-6 h-6 text-blue-600 animate-spin mx-auto mb-2" />
+                  <div className="text-xs font-bold text-slate-500">Loading admin accounts...</div>
+                </div>
+              ) : customAdmins.length === 0 ? (
+                <div className="text-center py-10 bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-2">
+                  <UserPlus className="w-8 h-8 text-slate-400 mx-auto" />
+                  <div className="text-sm font-black text-slate-800">No Custom Admin Accounts Created Yet</div>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                    You are currently using the Master Super Admin credentials. Click "NEW ADMIN" to create additional logins for your staff or partners.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {customAdmins.map((admin) => (
+                    <div key={admin.id} className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-slate-900 text-sm">{admin.name}</span>
+                          <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                            {admin.role}
+                          </span>
+                        </div>
+                        <div className="text-xs font-mono text-slate-600 font-semibold">{admin.email}</div>
+                        <div className="text-[11px] text-slate-400">Created: {new Date(admin.createdAt).toLocaleDateString()}</div>
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteAdmin(admin.id)}
+                        className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-600 text-red-700 hover:text-white border border-red-200 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                        title="Revoke Admin Access"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Revoke</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
           </div>
         )}
@@ -950,6 +1235,124 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExit }) => {
                   className="btn-orange px-7 py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
                 >
                   {formStatus.type === 'loading' ? 'PUBLISHING...' : 'PUBLISH TO WEBSITE'}
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL: CREATE NEW CUSTOM ADMIN */}
+      {/* ==================================================== */}
+      {isCreatingAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border-2 border-slate-200 p-6 sm:p-8 space-y-6 relative">
+            
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <UserPlus className="w-5 h-5 text-blue-600" />
+                <h2 className="text-xl font-black text-slate-900">
+                  Create New Administrator
+                </h2>
+              </div>
+              <button
+                onClick={() => setIsCreatingAdmin(false)}
+                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {adminStatus.message && (
+              <div className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2 ${
+                adminStatus.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
+                adminStatus.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                'bg-blue-50 text-blue-700 border border-blue-200'
+              }`}>
+                {adminStatus.type === 'error' && <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />}
+                {adminStatus.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
+                <span>{adminStatus.message}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateAdmin} className="space-y-4">
+              
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Rahul Sharma"
+                  value={newAdminForm.name}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, name: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="rahul@manideeptech.com"
+                  value={newAdminForm.email}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, email: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Login Password *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Set strong password"
+                  value={newAdminForm.password}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, password: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Role / Designation
+                </label>
+                <select
+                  value={newAdminForm.role}
+                  onChange={(e) => setNewAdminForm({ ...newAdminForm, role: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-200 text-xs sm:text-sm font-bold focus:bg-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="Co-Admin">Co-Admin</option>
+                  <option value="Staff Engineer">Staff Engineer</option>
+                  <option value="Operations Manager">Operations Manager</option>
+                  <option value="Lead Developer">Lead Developer</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingAdmin(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={adminStatus.type === 'loading'}
+                  className="btn-orange px-7 py-2.5 text-xs font-black uppercase tracking-wider cursor-pointer shadow-md"
+                >
+                  {adminStatus.type === 'loading' ? 'CREATING...' : 'CREATE ACCOUNT'}
                 </button>
               </div>
 

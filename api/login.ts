@@ -49,10 +49,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user: {
           email: normalizedEmail,
           name: 'Manideep Juvvala',
-          role: 'admin'
+          role: 'super_admin'
         },
         token
       });
+    }
+
+    // 3. Check MongoDB `admins` collection for custom created admins
+    try {
+      const { connectToDatabase } = await import('./lib/db');
+      const { db } = await connectToDatabase();
+      const customAdmin = await db.collection('admins').findOne({ 
+        email: normalizedEmail, 
+        password: inputPassword 
+      });
+
+      if (customAdmin) {
+        const token = generateAdminToken(normalizedEmail);
+        return res.status(200).json({
+          success: true,
+          user: {
+            email: normalizedEmail,
+            name: customAdmin.name || 'Admin',
+            role: customAdmin.role || 'admin'
+          },
+          token
+        });
+      }
+    } catch (dbErr: any) {
+      console.error('[Admin DB Login Error]:', dbErr.message);
     }
 
     return res.status(401).json({

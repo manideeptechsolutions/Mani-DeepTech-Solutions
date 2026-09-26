@@ -18,11 +18,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { email, password } = req.body || {};
     const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
     const validEmails = [adminEmail, 'manideeptechsolutions@gmai.com', 'manideeptechsolutions@gmail.com'].filter(Boolean);
-    const validPassword = process.env.ADMIN_PASSWORD;
+    const validPassword = (process.env.ADMIN_PASSWORD || '').trim();
 
     const normalizedEmail = (email || '').trim().toLowerCase();
+    const inputPassword = (password || '').trim();
 
-    if (validPassword && validEmails.includes(normalizedEmail) && password === validPassword) {
+    if (validPassword && validEmails.includes(normalizedEmail) && inputPassword === validPassword) {
       return res.status(200).json({
         success: true,
         user: {
